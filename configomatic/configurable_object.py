@@ -3,12 +3,11 @@ Module containing the configurable object base class.
 """
 
 from functools import reduce
+import json
 import os
 
 from pydantic import BaseModel, BaseConfig
 from pydantic.utils import deep_update
-
-import toml
 
 
 class ConfigurableObject(BaseModel):
@@ -21,7 +20,7 @@ class ConfigurableObject(BaseModel):
         # The default configuration path
         default_path = None
         # The function to use to load the configuration file
-        load_file = toml.load
+        load_file = json.load
         # The prefix to use for environment overrides
         env_prefix = None
 
