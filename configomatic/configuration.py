@@ -1,18 +1,67 @@
 """
-Module containing the configurable object base class.
+Module containing the configuration base classes for configomatic.
 """
 
 from functools import reduce
 import json
 import os
+import pathlib
 
 from pydantic import BaseModel, BaseConfig
 from pydantic.utils import deep_update
 
+from .exceptions import FileNotFound, NoSuitableLoader
 
-class ConfigurableObject(BaseModel):
+
+def snake_to_pascal(name):
     """
-    Base class for a configurable object.
+    Converts a snake case name to pascalCase.
+    """
+    first, *rest = name.split("_")
+    return "".join([first] + [part.capitalize() for part in rest])
+
+
+class Suffixes:
+    """
+    Collection of known suffixes for the supported loaders.
+    """
+    JSON = [".json"]
+    YAML = [".yml", ".yaml"]
+    TOML = [".toml"]
+
+
+def default_load_file(path):
+    """
+    The default function for loading a configuration for file.
+
+    This function will try various formats if the relevant libraries are loaded.
+    """
+    with path.open() as fh:
+        if path.suffix in Suffixes.JSON:
+            return json.load()
+        elif path.suffix in Suffixes.YAML:
+            import yaml
+            return yaml.safe_load(fh)
+        elif path.suffix in Suffixes.TOML:
+            import toml
+            return toml.load(fh)
+        else:
+            raise NoSuitableLoader(f"no loader for suffix {path.suffix}")
+
+
+class Section(BaseModel):
+    """
+    Base class for a configuration section.
+    """
+    class Config:
+        # Allow pascalCase names as well as snake_case
+        alias_generator = snake_to_pascal
+        allow_population_by_field_name = True
+
+
+class Configuration(BaseModel):
+    """
+    Base class for a configuration.
     """
     class Config(BaseConfig):
         # An environment variable that may specify the config path
@@ -20,9 +69,12 @@ class ConfigurableObject(BaseModel):
         # The default configuration path
         default_path = None
         # The function to use to load the configuration file
-        load_file = json.load
+        load_file = default_load_file
         # The prefix to use for environment overrides
         env_prefix = None
+        # Allow pascalCase names as well as snake_case
+        alias_generator = snake_to_pascal
+        allow_population_by_field_name = True
 
     __config__ = Config
 
@@ -50,16 +102,15 @@ class ConfigurableObject(BaseModel):
             path = self.__config__.default_path
         # Load the specified configuration file
         if path:
-            try:
-                with open(path) as fh:
-                    return self.__config__.load_file(fh)
-            except FileNotFoundError:
-                if explicit_path:
-                    # If the file was explicitly specified by the user, require it to exist
-                    raise
-                else:
-                    # If no path was explicitly specified, don't require the default file to exist
-                    return {}
+            path = pathlib.Path(path)
+            if path.is_file():
+                return self.__config__.load_file(path)
+            elif explicit_path:
+                # If the file was explicitly specified by the user, require it to exist
+                raise FileNotFound(f"{path} does not exist")
+            else:
+                # If no path was explicitly specified, don't require the default file to exist
+                return {}
         else:
             return {}
 
