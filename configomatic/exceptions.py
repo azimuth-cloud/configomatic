@@ -7,6 +7,11 @@ class FileNotFound(RuntimeError):
     Raised when a configuration file is not found.
     """
 
+class RequiredPackageNotAvailable(RuntimeError):
+    """
+    Raised when a package required to load a particular file format is not available.
+    """
+
 
 class NoSuitableLoader(RuntimeError):
     """

@@ -3,14 +3,14 @@ Module containing the configuration base classes for configomatic.
 """
 
 from functools import reduce
-import json
 import os
 import pathlib
 
 from pydantic import BaseModel, BaseConfig
 from pydantic.utils import deep_update
 
-from .exceptions import FileNotFound, NoSuitableLoader
+from .exceptions import FileNotFound
+from .loader import load_file as default_load_file
 
 
 def snake_to_pascal(name):
@@ -21,32 +21,7 @@ def snake_to_pascal(name):
     return "".join([first] + [part.capitalize() for part in rest])
 
 
-class Suffixes:
-    """
-    Collection of known suffixes for the supported loaders.
-    """
-    JSON = [".json"]
-    YAML = [".yml", ".yaml"]
-    TOML = [".toml"]
 
-
-def default_load_file(path):
-    """
-    The default function for loading a configuration for file.
-
-    This function will try various formats if the relevant libraries are loaded.
-    """
-    with path.open() as fh:
-        if path.suffix in Suffixes.JSON:
-            return json.load()
-        elif path.suffix in Suffixes.YAML:
-            import yaml
-            return yaml.safe_load(fh)
-        elif path.suffix in Suffixes.TOML:
-            import toml
-            return toml.load(fh)
-        else:
-            raise NoSuitableLoader(f"no loader for suffix {path.suffix}")
 
 
 class Section(BaseModel):
@@ -104,7 +79,7 @@ class Configuration(BaseModel):
         if path:
             path = pathlib.Path(path)
             if path.is_file():
-                return self.__config__.load_file(path)
+                return self.__config__.load_file(path) or {}
             elif explicit_path:
                 # If the file was explicitly specified by the user, require it to exist
                 raise FileNotFound(f"{path} does not exist")
