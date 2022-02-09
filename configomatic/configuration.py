@@ -94,6 +94,9 @@ class Configuration(BaseModel):
         # Nesting is specified using __
         env_vars = {}
         for env_var, env_val in os.environ.items():
+            # Only consider non-empty environment variables
+            if not env_val:
+                continue
             env_var_parts = env_var.split('__')
             # The first part must match the prefix, but is otherwise thrown away
             if self.__config__.env_prefix:
