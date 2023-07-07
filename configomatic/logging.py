@@ -86,9 +86,12 @@ class LoggingConfiguration(BaseModel):
             v or {}
         )
 
-    def apply(self):
+    def apply(self, overrides = None):
         """
         Apply the logging configuration.
         """
         import logging.config
-        logging.config.dictConfig(self.dict())
+        config = self.dict()
+        if overrides:
+            config = deep_update(config, overrides)
+        logging.config.dictConfig(config)
