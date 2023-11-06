@@ -2,8 +2,6 @@ import glob
 import json
 import pathlib
 
-from pydantic.utils import deep_update
-
 try:
     import yaml
     yaml_available = True
@@ -17,6 +15,7 @@ except ImportError:
     toml_available = False
 
 from .exceptions import RequiredPackageNotAvailable, NoSuitableLoader
+from .utils import merge
 
 
 if yaml_available:
@@ -55,7 +54,7 @@ if yaml_available:
                     for p in glob.iglob(path, recursive = True)
                 )
         # Merge the configs in sort order, so overrides are predictable
-        return deep_update(*[
+        return merge(*[
             load_file(path)
             for path in sorted(included_paths - excluded_paths)
         ])
