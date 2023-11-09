@@ -1,7 +1,8 @@
 import logging
 
-from pydantic import BaseModel, Field, validator
-from pydantic.utils import deep_update
+from pydantic import BaseModel, Field, field_validator
+
+from .utils import merge
 
 
 class LessThanLevelFilter(logging.Filter):
@@ -22,14 +23,14 @@ class LoggingConfiguration(BaseModel):
     # See https://docs.python.org/3/library/logging.config.html#logging-config-dictschema
     version: int = 1
     disable_existing_loggers: bool = False
-    formatters: dict = Field(default_factory = dict)
-    filters: dict = Field(default_factory = dict)
-    handlers: dict = Field(default_factory = dict)
-    loggers: dict = Field(default_factory = dict)
+    formatters: dict = Field(default_factory = dict, validate_default = True)
+    filters: dict = Field(default_factory = dict, validate_default = True)
+    handlers: dict = Field(default_factory = dict, validate_default = True)
+    loggers: dict = Field(default_factory = dict, validate_default = True)
 
-    @validator("formatters", pre = True, always = True)
+    @field_validator("formatters")
     def default_formatters(cls, v):
-        return deep_update(
+        return merge(
             {
                 "default": {
                     "format": "[%(asctime)s] %(name)-20.20s [%(levelname)-8.8s] %(message)s",
@@ -38,9 +39,9 @@ class LoggingConfiguration(BaseModel):
             v or {}
         )
 
-    @validator("filters", pre = True, always = True)
+    @field_validator("filters")
     def default_filters(cls, v):
-        return deep_update(
+        return merge(
             {
                 # This filter allows us to send >= WARNING to stderr and < WARNING to stdout
                 "less_than_warning": {
@@ -51,9 +52,9 @@ class LoggingConfiguration(BaseModel):
             v or {}
         )
 
-    @validator("handlers", pre = True, always = True)
+    @field_validator("handlers")
     def default_handlers(cls, v):
-        return deep_update(
+        return merge(
             {
                 # Handlers for stdout/err with default formatting
                 "stdout": {
@@ -72,9 +73,9 @@ class LoggingConfiguration(BaseModel):
             v or {}
         )
 
-    @validator("loggers", pre = True, always = True)
+    @field_validator("loggers")
     def default_loggers(cls, v):
-        return deep_update(
+        return merge(
             {
                 # Just set the config for the default logger here
                 "": {
@@ -91,7 +92,7 @@ class LoggingConfiguration(BaseModel):
         Apply the logging configuration.
         """
         import logging.config
-        config = self.dict()
+        config = self.model_dump()
         if overrides:
-            config = deep_update(config, overrides)
+            config = merge(config, overrides)
         logging.config.dictConfig(config)
