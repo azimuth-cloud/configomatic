@@ -56,7 +56,7 @@ class LoggingConfiguration(BaseModel):
             {
                 "default": {
                     "()": f"{__name__}.DefaultFormatter",
-                    "format": "[%(asctime)s] %(name)s [%(levelname)-8.8s] %(quotedmessage)s %(formattedextra)s",
+                    "format": "[%(asctime)s] %(name)-20.20s [%(levelname)-8.8s] %(quotedmessage)s %(formattedextra)s",
                 },
             },
             v or {}
