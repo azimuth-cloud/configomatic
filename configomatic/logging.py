@@ -1,8 +1,30 @@
+import json
 import logging
 
 from pydantic import BaseModel, Field, field_validator
 
 from .utils import merge
+
+
+# Get the reserved keys for a log record
+LOG_RECORD_RESERVED_KEYS = set(logging.LogRecord("_", 0, "_", 0, None, None, None).__dict__.keys())
+
+
+class DefaultFormatter(logging.Formatter):
+    """
+    Default logging formatter for this operator.
+    """
+    def format(self, record):
+        # Calculate the extra parameters on the log record
+        extra = {k: v for k, v in record.__dict__.items() if k not in LOG_RECORD_RESERVED_KEYS}
+        # Add a quoted message property to the log record
+        record.__dict__["quotedmessage"] = json.dumps(record.getMessage())
+        # Add a formatted extra property to the log record
+        record.__dict__["formattedextra"] = " ".join(
+            k + "=" + json.dumps(str(v))
+            for k, v in extra.items()
+        )
+        return super().format(record)
 
 
 class LessThanLevelFilter(logging.Filter):
@@ -33,7 +55,8 @@ class LoggingConfiguration(BaseModel):
         return merge(
             {
                 "default": {
-                    "format": "[%(asctime)s] %(name)-20.20s [%(levelname)-8.8s] %(message)s",
+                    "()": f"{__name__}.DefaultFormatter",
+                    "format": "[%(asctime)s] %(name)s [%(levelname)-8.8s] %(quotedmessage)s %(formattedextra)s",
                 },
             },
             v or {}
