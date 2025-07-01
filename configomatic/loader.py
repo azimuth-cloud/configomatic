@@ -4,23 +4,24 @@ import pathlib
 
 try:
     import yaml
+
     yaml_available = True
 except ImportError:
     yaml_available = False
 
 try:
     import toml
+
     toml_available = True
 except ImportError:
     toml_available = False
 
-from .exceptions import RequiredPackageNotAvailable, NoSuitableLoader
+from .exceptions import NoSuitableLoader, RequiredPackageNotAvailable
 from .utils import merge
-
 
 if yaml_available:
     # If YAML is available, add support for inclusion tags to support loading
-    # configuration sections from other files
+    # configuration sections from other files
 
     def include_constructor(loader, node):
         """
@@ -46,29 +47,28 @@ if yaml_available:
             if path.startswith("!"):
                 excluded_paths.update(
                     pathlib.Path(p).resolve()
-                    for p in glob.iglob(path[1:], recursive = True)
+                    for p in glob.iglob(path[1:], recursive=True)
                 )
             else:
                 included_paths.update(
-                    pathlib.Path(p).resolve()
-                    for p in glob.iglob(path, recursive = True)
+                    pathlib.Path(p).resolve() for p in glob.iglob(path, recursive=True)
                 )
         # Merge the configs in sort order, so overrides are predictable
-        return merge(*[
-            load_file(path)
-            for path in sorted(included_paths - excluded_paths)
-        ])
+        return merge(
+            *[load_file(path) for path in sorted(included_paths - excluded_paths)]
+        )
 
-    yaml.add_constructor("!include", include_constructor, Loader = yaml.SafeLoader)
+    yaml.add_constructor("!include", include_constructor, Loader=yaml.SafeLoader)
 
 
 class Suffixes:
     """
     Collection of known suffixes for the supported loaders.
     """
-    JSON = [".json"]
-    YAML = [".yml", ".yaml"]
-    TOML = [".toml"]
+
+    JSON = [".json"]  # noqa: RUF012
+    YAML = [".yml", ".yaml"]  # noqa: RUF012
+    TOML = [".toml"]  # noqa: RUF012
 
 
 def load_json(fh):
@@ -103,7 +103,7 @@ def load_file(path):
     Attempts to load the specified configuration file.
 
     This function will try various formats, based on the file suffix.
-    The relevant libaries must be installed.
+    The relevant libraries must be installed.
     """
     with path.open() as fh:
         if path.suffix in Suffixes.JSON:

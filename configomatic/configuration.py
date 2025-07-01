@@ -14,30 +14,27 @@ from .loader import load_file as default_load_file
 from .utils import merge, snake_to_pascal
 
 
-class Section(
-    BaseModel,
-    alias_generator = snake_to_pascal,
-    populate_by_name = True
-):
+class Section(BaseModel, alias_generator=snake_to_pascal, populate_by_name=True):
     """
     Base class for a configuration section.
     """
 
 
-class ConfigEnvironmentDict(t.TypedDict, total = False):
+class ConfigEnvironmentDict(t.TypedDict, total=False):
     """
     TypedDict for configuring the config environment.
     """
-    path_env_var: t.Optional[str]
+
+    path_env_var: str | None
     """An environment variable that may specify the config path"""
 
-    default_path: t.Optional[str]
+    default_path: str | None
     """The default configuration path"""
 
-    load_file: t.Optional[t.Callable[[str], t.Dict[str, t.Any]]]
+    load_file: t.Callable[[str], dict[str, t.Any]] | None
     """The function to use to load the configuration file"""
 
-    env_prefix: t.Optional[str]
+    env_prefix: str | None
     """The prefix to use for environment overrides"""
 
 
@@ -48,14 +45,8 @@ class ConfigurationMeta(type(BaseModel)):
     """
     Metaclass for a configuration.
     """
-    def __new__(
-        cls,
-        name,
-        bases,
-        attrs,
-        /,
-        **kwargs
-    ):
+
+    def __new__(cls, name, bases, attrs, /, **kwargs):
         # Config environment configuration is inherited from the bases
         config_env = ConfigEnvironmentDict()
         for base in bases:
@@ -79,24 +70,26 @@ class ConfigurationMeta(type(BaseModel)):
         # Add the config env to the model attrs
         # Add a classvar annotation so that Pydantic leaves it alone
         attrs["config_env"] = config_env
-        attrs.setdefault("__annotations__", {})["config_env"] = t.ClassVar[ConfigEnvironmentDict]
+        attrs.setdefault("__annotations__", {})["config_env"] = t.ClassVar[
+            ConfigEnvironmentDict
+        ]
 
         return super().__new__(cls, name, bases, attrs, **pydantic_kwargs)
 
 
 class Configuration(
     BaseModel,
-    metaclass = ConfigurationMeta,
-    alias_generator = snake_to_pascal,
-    populate_by_name = True,
+    metaclass=ConfigurationMeta,
+    alias_generator=snake_to_pascal,
+    populate_by_name=True,
 ):
     """
     Base class for a configuration.
     """
+
     config_env = ConfigEnvironmentDict()
 
-
-    def __init__(self, _use_file = True, _path = None, _use_env = True, **init_kwargs):
+    def __init__(self, _use_file=True, _path=None, _use_env=True, **init_kwargs):
         # Work out which configs to use
         configs = []
         # If requested, config from file takes the lowest precedence
@@ -129,7 +122,8 @@ class Configuration(
                 # If the file was explicitly specified by the user, require it to exist
                 raise FileNotFound(f"{path} does not exist")
             else:
-                # If no path was explicitly specified, don't require the default file to exist
+                # If no path was explicitly specified, don't require the default file to
+                # exist
                 return {}
         else:
             return {}
@@ -143,7 +137,7 @@ class Configuration(
             # Only consider non-empty environment variables
             if not env_val:
                 continue
-            env_var_parts = env_var.split('__')
+            env_var_parts = env_var.split("__")
             # The first part must match the prefix, but is otherwise thrown away
             if env_prefix:
                 if env_var_parts[0].upper() == env_prefix.upper():
@@ -152,9 +146,9 @@ class Configuration(
                     continue
             # The rest of the parts form a nested dictionary
             nested_vars = functools.reduce(
-                lambda vars, part: vars.setdefault(part.lower(), {}),
+                lambda vars, part: vars.setdefault(part.lower(), {}),  # noqa: A006
                 env_var_parts[:-1],
-                env_vars
+                env_vars,
             )
             # With the final part, set the value
             nested_vars[env_var_parts[-1].lower()] = env_val

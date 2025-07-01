@@ -3,3 +3,12 @@
 __pycache__
 *.egg-info
 pip-wheel-metadata
+build
+
+# Unit test / coverage reports
+cover/
+.coverage*
+!.coveragerc
+.tox
+.stestr
+.venv
