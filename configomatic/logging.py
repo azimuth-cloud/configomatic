@@ -66,7 +66,7 @@ class LoggingConfiguration(BaseModel):
                     "format": "[%(asctime)s] %(name)-20.20s [%(levelname)-8.8s] %(quotedmessage)s %(formattedextra)s",  # noqa: E501
                 },
             },
-            v or {},
+            v,
         )
 
     @field_validator("filters")
@@ -80,7 +80,7 @@ class LoggingConfiguration(BaseModel):
                     "level": "WARNING",
                 },
             },
-            v or {},
+            v,
         )
 
     @field_validator("handlers")
@@ -101,7 +101,7 @@ class LoggingConfiguration(BaseModel):
                     "level": "WARNING",
                 },
             },
-            v or {},
+            v,
         )
 
     @field_validator("loggers")
@@ -115,7 +115,7 @@ class LoggingConfiguration(BaseModel):
                     "propagate": True,
                 },
             },
-            v or {},
+            v,
         )
 
     def apply(self, overrides=None):
