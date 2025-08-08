@@ -6,7 +6,7 @@ def snake_to_pascal(name):
     Converts a snake_case name to pascalCase.
     """
     first, *rest = name.split("_")
-    return "".join([first] + [part.capitalize() for part in rest])
+    return "".join([first.lower()] + [part.capitalize() for part in rest])
 
 
 def merge(defaults, *overrides):
@@ -25,6 +25,6 @@ def merge(defaults, *overrides):
                     merged[key] = value
             return merged
         else:
-            return overrides if overrides is not None else defaults
+            return overrides
 
-    return functools.reduce(merge2, overrides, defaults)
+    return functools.reduce(merge2, overrides, defaults.copy())

@@ -6,3 +6,5 @@ types-PyYAML
 types-setuptools
 mypy
 black~=25.1.0
+PyYAML>=6.0
+toml>=0.10.0
