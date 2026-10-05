@@ -8,11 +8,8 @@ on:
         description: The ref to build.
         required: true
 
-# Use the head ref for workflow concurrency, with cancellation
-# This should mean that any previous workflows for a PR get cancelled when a new commit is pushed
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref }}
-  cancel-in-progress: true
+# Concurrency is handled by the calling workflow. Defining a group here would
+# deadlock, as github.workflow resolves to the caller's name in a reusable workflow.
 
 jobs:
   build:
