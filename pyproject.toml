@@ -1,8 +1,55 @@
-[build-system]
-requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4"]
-build-backend = "setuptools.build_meta"
+[project]
+name = "configomatic"
+description = "Package providing a configurable object for use in Python applications."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Matt Pryor", email = "matt@stackhpc.com" }]
+dynamic = ["version"]
+dependencies = [
+    "pydantic>=2,<3",
+]
 
-[tool.setuptools_scm]
+[project.optional-dependencies]
+toml = [
+    "toml>=0.10.2",
+]
+yaml = [
+    "pyyaml>=6.0.3",
+]
+all = [
+    "pyyaml>=6.0.3",
+    "toml>=0.10.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/azimuth-cloud/configomatic"
+
+[dependency-groups]
+dev = [
+    "codespell>=2.4.3",
+    "coverage>=7.16.2",
+    "mypy>=2.3.1",
+    "pytest>=9.1.1",
+    "ruff>=0.16.9,<0.17",
+    "tox>=4.64.4",
+    "tox-uv>=1.36.0",
+    "types-pyyaml>=6.0.12.20260906",
+    "types-toml>=0.10.8.20260518",
+]
+
+[tool.uv]
+exclude-newer = "7 days"
+
+# Use hatchling instead of uv's own build backend, because uv cannot dynamically get the version from git.
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+fallback-version = "0.0.1+unknown"
 
 [tool.ruff]
 line-length = 88
@@ -34,9 +81,6 @@ select = [
     # pep8 naming
     "N",
 ]
-ignore = [
-    "UP038", # deprecated
-]
 
 [tool.mypy]
 follow_imports = "silent"
@@ -47,3 +91,9 @@ check_untyped_defs = true
 [tool.ruff.lint.mccabe]
 # Flag errors (`C901`) whenever the complexity level exceeds 5.
 max-complexity = 14
+
+[tool.pytest]
+testpaths = ["configomatic/tests"]
+
+[tool.codespell]
+skip = "./cover,./.tox,./.venv,./uv.lock"

@@ -1,0 +1,87 @@
+min_version = "4.0.0"
+# Run autofix last, to ensure CI fails,
+# even though autofix runs locally first
+env_list = [
+  "py3",
+  "ruff",
+  "codespell",
+  "autofix",
+]
+
+[env_run_base]
+runner = "uv-venv-lock-runner"
+extras = ["all"]
+commands = [
+  [
+    "pytest",
+    { replace = "posargs", default = [
+    ], extend = true },
+  ],
+]
+
+[env_run_base.set_env]
+PYTHONWARNINGS = "default::DeprecationWarning"
+
+[env.autofix]
+commands = [
+  [
+    "ruff",
+    "format",
+    "{tox_root}",
+  ],
+  [
+    "codespell",
+    "{tox_root}",
+    "-w",
+  ],
+  [
+    "ruff",
+    "check",
+    "{tox_root}",
+    "--fix",
+  ],
+]
+
+[env.codespell]
+commands = [["codespell", { replace = "posargs", default = [], extend = true }]]
+
+[env.ruff]
+description = "Run Ruff checks"
+commands = [["ruff", "check", "{tox_root}"], ["ruff", "format", "{tox_root}", "--check"]]
+
+[env.venv]
+commands = [[{ replace = "posargs", default = [], extend = true }]]
+
+[env.cover]
+commands = [
+  [
+    "coverage",
+    "run",
+    "--source",
+    "configomatic",
+    "-m",
+    "pytest",
+    { replace = "posargs", default = [
+    ], extend = true },
+  ],
+  [
+    "coverage",
+    "html",
+    "-d",
+    "{toxinidir}/cover",
+  ],
+  [
+    "coverage",
+    "xml",
+    "-o",
+    "{toxinidir}/cover/coverage.xml",
+  ],
+  [
+    "coverage",
+    "report",
+  ],
+]
+
+#TODO: fix mypy, and re-add it to env_list
+[env.mypy]
+commands = [["mypy", "{tox_root}", { replace = "posargs", default = [], extend = true }]]

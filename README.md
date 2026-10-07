@@ -43,18 +43,18 @@ class ChildConfig(Section):
 class MainConfig(
     Configuration,
     # The default path for the configuration file
-    default_path = "/etc/mypackage/config.yaml",
+    default_path="/etc/mypackage/config.yaml",
     # The environment variable that can be used to specify a different config file
-    path_env_var = "MYPACKAGE_CONFIG",
+    path_env_var="MYPACKAGE_CONFIG",
     # The prefix that should be used for environment variable overrides
-    env_prefix = "MYPACKAGE"
+    env_prefix="MYPACKAGE",
 ):
     child: ChildConfig
     item4: str
 
 
 # Initialise the configuration object
-settings = MainConfig(item4 = "test1")
+settings = MainConfig(item4="test1")
 
 
 # Access nested settings
@@ -145,7 +145,7 @@ item2: notthedefault
 
 ### Environment variable overrides
 
-Individial config items can be overridden using environment variables of the form
+Individual config items can be overridden using environment variables of the form
 
 ```
 {PREFIX}__{NAME}__{NESTEDNAME}=value
@@ -180,9 +180,9 @@ from configomatic import Configuration, LoggingConfiguration
 
 class MyPackageConfig(
     Configuration,
-    default_path = "/etc/mypackage/config.yaml",
-    path_env_var = "MYPACKAGE_CONFIG",
-    env_prefix = "MYPACKAGE"
+    default_path="/etc/mypackage/config.yaml",
+    path_env_var="MYPACKAGE_CONFIG",
+    env_prefix="MYPACKAGE",
 ):
     # This will use the default logging configuration by default
     logging: LoggingConfiguration = Field(default_factory=LoggingConfiguration)
@@ -228,7 +228,7 @@ to use the default logging configuration:
 > applications where sending logs to stdout/stderr is encouraged so that log aggregation tools
 > can collect them.
 
-### Overridding logging configuration
+### Overriding logging configuration
 
 `LoggingConfiguration` will accept any full _or partial_ configuration that conforms to the
 [logging configuration dictionary schema](https://docs.python.org/3/library/logging.config.html#logging-config-dictschema).

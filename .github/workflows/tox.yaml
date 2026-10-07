@@ -8,11 +8,8 @@ on:
         description: The ref to build.
         required: true
 
-# Use the head ref for workflow concurrency, with cancellation
-# This should mean that any previous workflows for a PR get cancelled when a new commit is pushed
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref }}
-  cancel-in-progress: true
+# Concurrency is handled by the calling workflow. Defining a group here would
+# deadlock, as github.workflow resolves to the caller's name in a reusable workflow.
 
 jobs:
   build:
@@ -20,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10','3.12']
+        python-version: ['3.10', '3.14']
 
     steps:
     - name: Check out the repository
@@ -28,21 +25,16 @@ jobs:
       with:
         ref: ${{ inputs.ref || github.ref }}
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+    - name: Set up uv
+      uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install tox
-
     - name: Test with tox
-      run: tox
+      run: uv run --locked tox
 
     - name: Generate coverage reports
-      run: tox -e cover
+      run: uv run --locked tox -e cover
 
     - name: Archive code coverage results
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
