@@ -68,11 +68,7 @@ class ConfigurationMeta(type(BaseModel)):
         config_env.update(config_env_kwargs)
 
         # Add the config env to the model attrs
-        # Add a classvar annotation so that Pydantic leaves it alone
         attrs["config_env"] = config_env
-        attrs.setdefault("__annotations__", {})["config_env"] = t.ClassVar[
-            ConfigEnvironmentDict
-        ]
 
         return super().__new__(cls, name, bases, attrs, **pydantic_kwargs)
 
@@ -87,7 +83,8 @@ class Configuration(
     Base class for a configuration.
     """
 
-    config_env = ConfigEnvironmentDict()
+    # A ClassVar so that Pydantic leaves it alone, which subclasses inherit
+    config_env: t.ClassVar[ConfigEnvironmentDict] = ConfigEnvironmentDict()
 
     def __init__(self, _use_file=True, _path=None, _use_env=True, **init_kwargs):
         # Work out which configs to use
