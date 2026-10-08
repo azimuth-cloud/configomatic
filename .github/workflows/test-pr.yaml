@@ -1,14 +1,8 @@
 name: Test Pull Request
 
 on:
+  # We use pull_request_target so that dependabot-created workflows can run
   pull_request:
-    types:
-      - opened
-      - synchronize
-      - ready_for_review
-      - reopened
-    branches:
-      - master
 
 # Use the head ref for workflow concurrency, with cancellation
 # This should mean that any previous workflows for a PR get cancelled when a new commit is pushed
@@ -21,4 +15,4 @@ jobs:
   unit_tests:
     uses: ./.github/workflows/tox.yaml
     with:
-      ref: ${{ github.event.pull_request.head.sha }}
+      ref: ${{ github.ref }}
